@@ -13,8 +13,10 @@ ofxOpticalFlowLK :: ofxOpticalFlowLK()
 {
 	opticalFlowSize	= 5;
 	opticalFlowBlur = 7;
-	opticalFlowMin	= 2;
-	opticalFlowMax	= 10;
+	opticalFlowMin	= 0;
+	opticalFlowMax	= 0;
+    
+    bInitialised = false;
 }
 
 ofxOpticalFlowLK :: ~ofxOpticalFlowLK()
@@ -205,8 +207,11 @@ ofPoint ofxOpticalFlowLK :: getVelAtNorm ( float x, float y )
 	p.x = cvGetReal2D( opFlowVelX, yi, xi );
 	p.y = cvGetReal2D( opFlowVelY, yi, xi );
 	
-	limitMin( p, opticalFlowMin );		// should look at making this optional, to save on cpu.
-	limitMax( p, opticalFlowMax );		// should look at making this optional, to save on cpu.
+    if( opticalFlowMin > 0 )
+        limitMin( p, opticalFlowMin );
+    
+    if( opticalFlowMax > 0 )
+        limitMax( p, opticalFlowMax );
 	
 	return p;
 }
@@ -220,8 +225,11 @@ ofPoint ofxOpticalFlowLK :: getVelAtPixel ( int x, int y )
 	p.x = cvGetReal2D( opFlowVelX, y, x );
 	p.y = cvGetReal2D( opFlowVelY, y, x );
 
-	limitMin( p, opticalFlowMin );		// should look at making this optional, to save on cpu.
-	limitMax( p, opticalFlowMax );		// should look at making this optional, to save on cpu.
+    if( opticalFlowMin > 0 )
+        limitMin( p, opticalFlowMin );
+    
+    if( opticalFlowMax > 0 )
+        limitMax( p, opticalFlowMax );
 	
 	return p;
 }
