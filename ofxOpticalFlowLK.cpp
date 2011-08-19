@@ -16,6 +16,9 @@ ofxOpticalFlowLK :: ofxOpticalFlowLK()
 	opticalFlowMin	= 0;
 	opticalFlowMax	= 0;
     
+    bMirrorH = false;
+    bMirrorV = false;
+    
     bInitialised = false;
 }
 
