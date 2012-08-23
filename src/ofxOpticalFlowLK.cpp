@@ -251,7 +251,7 @@ void ofxOpticalFlowLK::draw(int width, int height,  float lineScale, int res) {
 				vel = getVelAtNorm(x / (float)width, y / (float)height);
             }
 			
-			if(vel.x == 0 && vel.y == 0) {
+			if(vel.length() < 1) {  // smaller then 1 pixel, no point drawing.
 				continue;
             }
 			
