@@ -12,6 +12,9 @@ ofxOpticalFlowLK::ofxOpticalFlowLK() {
 	opticalFlowMin	= 0;
 	opticalFlowMax	= 0;
     
+    opFlowVelX = NULL;
+    opFlowVelY = NULL;
+    
     bMirrorH = false;
     bMirrorV = false;
     
@@ -55,6 +58,14 @@ void ofxOpticalFlowLK::setup(int width, int height) {
 	bInitialised = true;
 }
 
+void ofxOpticalFlowLK::setOpticalFlowSize(int value) {
+    opticalFlowSize = value;
+}
+
+void ofxOpticalFlowLK::setOpticalFlowBlur(int value) {
+    opticalFlowBlur = value;
+}
+
 void ofxOpticalFlowLK::reset() {
 	colrImgLrg.set(0);
 	colrImgSml.set(0);
@@ -73,8 +84,12 @@ void ofxOpticalFlowLK::destroy() {
 	greyImgSml.clear();
 	greyImgPrv.clear();
 	
-	cvReleaseImage(&opFlowVelX);
-	cvReleaseImage(&opFlowVelY);
+    if(opFlowVelX) {
+        cvReleaseImage(&opFlowVelX);
+    }
+    if(opFlowVelY) {
+        cvReleaseImage(&opFlowVelY);
+    }
 }
 
 ///////////////////////////////////////////
@@ -150,20 +165,52 @@ void ofxOpticalFlowLK::update(unsigned char* pixels, int width, int height, int 
 		greyImgSml.mirror(bMirrorV, bMirrorH);
     }
 	
-	int opFlowSize = opticalFlowSize;	// value must be 1, 3, 5, 7... etc.
-	opFlowSize *= 2;
-	opFlowSize += 1;
+    update(greyImgPrv.getCvImage(), greyImgSml.getCvImage(), opticalFlowSize, opticalFlowBlur);
 	
-	cvCalcOpticalFlowLK(greyImgPrv.getCvImage(), greyImgSml.getCvImage(), cvSize(opFlowSize, opFlowSize), opFlowVelX, opFlowVelY);
+	greyImgPrv = greyImgSml;
+}
+
+void ofxOpticalFlowLK::update(IplImage * previousImage, IplImage * currentImage, int opticalFlowSize, int opticalFlowBlur) {
+    
+    if((previousImage->width != currentImage->width) || (previousImage->height != currentImage->height)) {
+        return; // images do not match.
+    }
+    
+    int w = currentImage->width;
+    int h = currentImage->height;
+
+    if(opFlowVelX) {
+        if((opFlowVelX->width != w) || (opFlowVelX->height != h)) {
+            cvReleaseImage(&opFlowVelX);
+            opFlowVelX = cvCreateImage(cvSize(w, h), IPL_DEPTH_32F, 1);
+        }
+    } else {
+        opFlowVelX = cvCreateImage(cvSize(w, h), IPL_DEPTH_32F, 1);
+    }
+    
+    if(opFlowVelY) {
+        if((opFlowVelY->width != w) || (opFlowVelY->height != h)) {
+            cvReleaseImage(&opFlowVelY);
+            opFlowVelY = cvCreateImage(cvSize(w, h), IPL_DEPTH_32F, 1);
+        }
+    } else {
+        opFlowVelY = cvCreateImage(cvSize(w, h), IPL_DEPTH_32F, 1);
+    }
+    
+    int opFlowSize = opticalFlowSize;	// value must be 1, 3, 5, 7... etc.
+    opFlowSize /= 2;
+    opFlowSize *= 2;
+    opFlowSize += 1;
+	
+	cvCalcOpticalFlowLK(previousImage, currentImage, cvSize(opFlowSize, opFlowSize), opFlowVelX, opFlowVelY);
 	
 	int opFlowBlur = opticalFlowBlur;	// value must be 1, 3, 5, 7... etc.
+    opFlowBlur /= 2;
 	opFlowBlur *= 2;
 	opFlowBlur += 1;
 	
 	cvSmooth(opFlowVelX, opFlowVelX, CV_BLUR, opFlowBlur);
 	cvSmooth(opFlowVelY, opFlowVelY, CV_BLUR, opFlowBlur);
-	
-	greyImgPrv = greyImgSml;
 }
 
 ///////////////////////////////////////////
@@ -171,67 +218,20 @@ void ofxOpticalFlowLK::update(unsigned char* pixels, int width, int height, int 
 ///////////////////////////////////////////
 
 ofPoint ofxOpticalFlowLK::getVelAtNorm(float x, float y) {
-	x = ofClamp(x, 0.0, 1.0);
-	y = ofClamp(y, 0.0, 1.0);
-	
-	int xi = x * (sizeSml.width  - 1);
-	int yi = y * (sizeSml.height - 1);
-	
-	ofPoint p;
-	p.x = cvGetReal2D(opFlowVelX, yi, xi);
-	p.y = cvGetReal2D(opFlowVelY, yi, xi);
-	
-    if(opticalFlowMin > 0) {
-        limitMin(p, opticalFlowMin);
-    }
-    
-    if(opticalFlowMax > 0) {
-        limitMax(p, opticalFlowMax);
-    }
-	
-	return p;
+	int px = x * (opFlowVelX->width - 1);
+	int py = y * (opFlowVelX->height - 1);
+    return getVelAtPixel(px, py);
 }
 
 ofPoint ofxOpticalFlowLK::getVelAtPixel(int x, int y) {
-	x = ofClamp(x, 0, sizeSml.width  - 1);
-	y = ofClamp(y, 0, sizeSml.height - 1);
+	x = ofClamp(x, 0, opFlowVelX->width - 1);
+	y = ofClamp(y, 0, opFlowVelX->height - 1);
 	
 	ofPoint p;
 	p.x = cvGetReal2D(opFlowVelX, y, x);
 	p.y = cvGetReal2D(opFlowVelY, y, x);
 
-    if(opticalFlowMin > 0) {
-        limitMin(p, opticalFlowMin);
-    }
-    
-    if(opticalFlowMax > 0) {
-        limitMax(p, opticalFlowMax);
-    }
-	
 	return p;
-}
-
-///////////////////////////////////////////
-//	UTILS.
-///////////////////////////////////////////
-
-void ofxOpticalFlowLK::limitMin(ofPoint& p, float min) {
-	float length = (float)sqrt(p.x * p.x + p.y * p.y);
-	if(length < min) {
-		p.x = 0;
-		p.y = 0;
-	}
-}
-
-void ofxOpticalFlowLK::limitMax(ofPoint& p, float max) {
-	float lengthSquared = (p.x * p.x + p.y * p.y);
-	if(lengthSquared > max * max && lengthSquared > 0) {
-		float ratio = max / (float)sqrt(lengthSquared);
-		p.x *= ratio;
-		p.y *= ratio;
-	}
-	
-	float length = (float)sqrt(p.x * p.x + p.y * p.y);
 }
 
 ///////////////////////////////////////////

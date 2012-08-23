@@ -21,6 +21,9 @@ public :
 	
 	void setup(const ofRectangle& size);
 	void setup(int width = OPTICAL_FLOW_DEFAULT_WIDTH, int height = OPTICAL_FLOW_DEFAULT_HEIGHT);
+    
+    void setOpticalFlowSize(int value);
+    void setOpticalFlowBlur(int value);
 	
 	void reset();
 	void destroy();
@@ -31,12 +34,10 @@ public :
 	void update(ofVideoPlayer& source);
 	void update(ofVideoGrabber& source);
 	void update(unsigned char* pixels, int width, int height, int imageType);
+    void update(IplImage * previousImage, IplImage * currentImage, int opticalFlowSize=5, int opticalFlowBlur=0);
 	
 	ofPoint getVelAtNorm(float x, float y);
 	ofPoint getVelAtPixel(int x, int y);
-	
-	void limitMin(ofPoint& p, float min);
-	void limitMax(ofPoint& p, float max);
 	
 	void draw(int width = OPTICAL_FLOW_DEFAULT_WIDTH, int height = OPTICAL_FLOW_DEFAULT_HEIGHT, float lineScale = 10, int res = 6);
 	
