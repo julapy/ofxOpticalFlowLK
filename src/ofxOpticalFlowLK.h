@@ -1,6 +1,7 @@
 /*
  *  ofxOpticalFlow.h
  *  Created by lukasz karluk on 31/07/10.
+ *  http://codeoncanvas.cc
  *
  */
 
@@ -29,16 +30,16 @@ public :
 	void reset();
 	void destroy();
 	
-	void update(ofImage& source);
-	void update(ofxCvColorImage& source);
-	void update(ofxCvGrayscaleImage& source);
-	void update(ofVideoPlayer& source);
-	void update(ofVideoGrabber& source);
-	void update(unsigned char* pixels, int width, int height, int imageType);
+	void update(const ofImage & source);
+	void update(const ofxCvColorImage & source);
+	void update(const ofxCvGrayscaleImage & source);
+	void update(const ofVideoPlayer & source);
+	void update(const ofVideoGrabber & source);
+	void update(const ofPixels & pixels);
     void update(IplImage * previousImage, IplImage * currentImage, int opticalFlowSize=5, int opticalFlowBlur=0);
 	
-	ofPoint getVelAtNorm(float x, float y);
-	ofPoint getVelAtPixel(int x, int y);
+	ofVec3f getVelAtNorm(float x, float y);
+	ofVec3f getVelAtPixel(int x, int y);
 	
 	void draw(int width = OPTICAL_FLOW_DEFAULT_WIDTH, int height = OPTICAL_FLOW_DEFAULT_HEIGHT, float lineScale = 10, int res = 6);
 	

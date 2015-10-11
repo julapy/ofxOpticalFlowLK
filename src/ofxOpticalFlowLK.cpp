@@ -1,6 +1,7 @@
 /*
  *  ofxOpticalFlow.cpp
  *  Created by lukasz karluk on 31/07/10.
+ *  http://codeoncanvas.cc
  *
  */
 
@@ -96,48 +97,51 @@ void ofxOpticalFlowLK::destroy() {
 //	UPDATE.
 ///////////////////////////////////////////
 
-void ofxOpticalFlowLK::update(ofImage& source) {
-	update(source.getPixels().getData(), source.getWidth(), source.getHeight(), source.getImageType());
+void ofxOpticalFlowLK::update(const ofImage & source) {
+	update(source.getPixels());
 }
 
-void ofxOpticalFlowLK::update(ofxCvColorImage& source) {
-	update(source.getPixels().getData(), source.getWidth(), source.getHeight(), OF_IMAGE_COLOR);
+void ofxOpticalFlowLK::update(const ofxCvColorImage & source) {
+	update(source.getPixels());
 }
 
-void ofxOpticalFlowLK::update(ofxCvGrayscaleImage& source) {
-	update(source.getPixels().getData(), source.getWidth(), source.getHeight(), OF_IMAGE_GRAYSCALE);
+void ofxOpticalFlowLK::update(const ofxCvGrayscaleImage & source) {
+	update(source.getPixels());
 }
 
-void ofxOpticalFlowLK::update(ofVideoPlayer& source) {
-	update(source.getPixels().getData(), source.getWidth(), source.getHeight(), OF_IMAGE_COLOR);	// assume colour image type.
+void ofxOpticalFlowLK::update(const ofVideoPlayer & source) {
+	update(source.getPixels());	// assume colour image type.
 }
 
-void ofxOpticalFlowLK::update(ofVideoGrabber& source) {
-	update(source.getPixels().getData(), source.getWidth(), source.getHeight(), OF_IMAGE_COLOR);	// assume colour image type.
+void ofxOpticalFlowLK::update(const ofVideoGrabber & source) {
+	update(source.getPixels());	// assume colour image type.
 }
 
-void ofxOpticalFlowLK::update(unsigned char* pixels, int width, int height, int imageType) {
+void ofxOpticalFlowLK::update(const ofPixels & pixels) {
 
-	bool rightSize = (sizeSml.width == width && sizeSml.height == height);
+    int pixelsW = pixels.getWidth();
+    int pixelsH = pixels.getHeight();
+    int pixelsType = pixels.getImageType();
+	bool rightSize = (sizeSml.width == pixelsW && sizeSml.height == pixelsH);
 	
 	//-- making the input the right size for optical flow to work with.
 	
-	if(rightSize) {
-		if(imageType == OF_IMAGE_COLOR) {
-			colrImgSml.setFromPixels(pixels, sizeSml.width, sizeSml.height);
+	if(rightSize == true) {
+		if(pixelsType == OF_IMAGE_COLOR) {
+			colrImgSml.setFromPixels(pixels.getData(), sizeSml.width, sizeSml.height);
 			greyImgSml.setFromColorImage(colrImgSml);
-		} else if(imageType == OF_IMAGE_GRAYSCALE) {
-			greyImgSml.setFromPixels(pixels, sizeSml.width, sizeSml.height);
+		} else if(pixelsType == OF_IMAGE_GRAYSCALE) {
+			greyImgSml.setFromPixels(pixels.getData(), sizeSml.width, sizeSml.height);
 		} else {
 			return;		// wrong image type.
 		}
 	} else {
 
-		bool sizeLrgChanged = (sizeLrg.width != width || sizeLrg.height != height);
+		bool sizeLrgChanged = (sizeLrg.width != pixelsW || sizeLrg.height != pixelsH);
 		
 		if(sizeLrgChanged) {		// size of input has changed since last update.
-			sizeLrg.width = width;
-			sizeLrg.height = height;
+			sizeLrg.width = pixelsW;
+			sizeLrg.height = pixelsH;
 			
 			colrImgLrg.clear();
 			greyImgLrg.clear();
@@ -149,12 +153,12 @@ void ofxOpticalFlowLK::update(unsigned char* pixels, int width, int height, int 
 			greyImgLrg.set(0);
 		}
 		
-		if(imageType == OF_IMAGE_COLOR) {
-			colrImgLrg.setFromPixels(pixels, sizeLrg.width, sizeLrg.height);
+		if(pixelsType == OF_IMAGE_COLOR) {
+			colrImgLrg.setFromPixels(pixels);
 			colrImgSml.scaleIntoMe(colrImgLrg);
 			greyImgSml.setFromColorImage(colrImgSml);
-		} else if(imageType == OF_IMAGE_GRAYSCALE) {
-			greyImgLrg.setFromPixels(pixels, sizeLrg.width, sizeLrg.height);
+		} else if(pixelsType == OF_IMAGE_GRAYSCALE) {
+			greyImgLrg.setFromPixels(pixels);
 			greyImgSml.scaleIntoMe(greyImgLrg);
 		} else {
 			return;		// wrong image type.
@@ -217,17 +221,17 @@ void ofxOpticalFlowLK::update(IplImage * previousImage, IplImage * currentImage,
 //	OP.FLOW VELOCITY GETTERS.
 ///////////////////////////////////////////
 
-ofPoint ofxOpticalFlowLK::getVelAtNorm(float x, float y) {
+ofVec3f ofxOpticalFlowLK::getVelAtNorm(float x, float y) {
 	int px = x * (opFlowVelX->width - 1);
 	int py = y * (opFlowVelX->height - 1);
     return getVelAtPixel(px, py);
 }
 
-ofPoint ofxOpticalFlowLK::getVelAtPixel(int x, int y) {
+ofVec3f ofxOpticalFlowLK::getVelAtPixel(int x, int y) {
 	x = ofClamp(x, 0, opFlowVelX->width - 1);
 	y = ofClamp(y, 0, opFlowVelX->height - 1);
 	
-	ofPoint p;
+	ofVec3f p;
 	p.x = cvGetReal2D(opFlowVelX, y, x);
 	p.y = cvGetReal2D(opFlowVelY, y, x);
 
@@ -241,7 +245,7 @@ ofPoint ofxOpticalFlowLK::getVelAtPixel(int x, int y) {
 void ofxOpticalFlowLK::draw(int width, int height,  float lineScale, int res) {
 	bool rightSize = (sizeSml.width == width && sizeSml.height == height);
 	
-	ofPoint vel;
+	ofVec3f vel;
 	
 	for(int x=0; x<width; x+=res) {
 		for(int y=0; y<height; y+=res) {
