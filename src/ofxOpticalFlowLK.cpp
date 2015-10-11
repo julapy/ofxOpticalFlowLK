@@ -97,23 +97,23 @@ void ofxOpticalFlowLK::destroy() {
 ///////////////////////////////////////////
 
 void ofxOpticalFlowLK::update(ofImage& source) {
-	update(source.getPixels(), source.width, source.height, source.type);
+	update(source.getPixels().getData(), source.getWidth(), source.getHeight(), source.getImageType());
 }
 
 void ofxOpticalFlowLK::update(ofxCvColorImage& source) {
-	update(source.getPixels(), source.width, source.height, OF_IMAGE_COLOR);
+	update(source.getPixels().getData(), source.getWidth(), source.getHeight(), OF_IMAGE_COLOR);
 }
 
 void ofxOpticalFlowLK::update(ofxCvGrayscaleImage& source) {
-	update(source.getPixels(), source.width, source.height, OF_IMAGE_GRAYSCALE);
+	update(source.getPixels().getData(), source.getWidth(), source.getHeight(), OF_IMAGE_GRAYSCALE);
 }
 
 void ofxOpticalFlowLK::update(ofVideoPlayer& source) {
-	update(source.getPixels(), source.width, source.height, OF_IMAGE_COLOR);	// assume colour image type.
+	update(source.getPixels().getData(), source.getWidth(), source.getHeight(), OF_IMAGE_COLOR);	// assume colour image type.
 }
 
 void ofxOpticalFlowLK::update(ofVideoGrabber& source) {
-	update(source.getPixels(), source.width, source.height, OF_IMAGE_COLOR);	// assume colour image type.
+	update(source.getPixels().getData(), source.getWidth(), source.getHeight(), OF_IMAGE_COLOR);	// assume colour image type.
 }
 
 void ofxOpticalFlowLK::update(unsigned char* pixels, int width, int height, int imageType) {
@@ -255,7 +255,7 @@ void ofxOpticalFlowLK::draw(int width, int height,  float lineScale, int res) {
 				continue;
             }
 			
-			ofLine(x, y, x + vel.x * lineScale, y + vel.y * lineScale);
+			ofDrawLine(x, y, x + vel.x * lineScale, y + vel.y * lineScale);
 		}
 	}
 }

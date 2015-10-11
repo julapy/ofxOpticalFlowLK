@@ -11,6 +11,7 @@
 
 #include "ofMain.h"
 #include "ofxOpenCv.h"
+#include "opencv2/legacy/legacy.hpp"
 
 class ofxOpticalFlowLK {
 	
