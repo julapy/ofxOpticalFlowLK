@@ -26,6 +26,7 @@ public :
     
     void setOpticalFlowSize(int value);
     void setOpticalFlowBlur(int value);
+    void setCvInterpolationMethod(int value);
 	
 	void reset();
 	void destroy();
@@ -64,4 +65,6 @@ public :
 	int opticalFlowBlur;
 	float opticalFlowMin;
 	float opticalFlowMax;
+    
+    int cvInterpolationMethod;
 };

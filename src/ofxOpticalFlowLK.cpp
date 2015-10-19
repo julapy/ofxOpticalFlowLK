@@ -19,6 +19,8 @@ ofxOpticalFlowLK::ofxOpticalFlowLK() {
     bMirrorH = false;
     bMirrorV = false;
     
+    cvInterpolationMethod = CV_INTER_NN;
+    
     bInitialised = false;
 }
 
@@ -65,6 +67,10 @@ void ofxOpticalFlowLK::setOpticalFlowSize(int value) {
 
 void ofxOpticalFlowLK::setOpticalFlowBlur(int value) {
     opticalFlowBlur = value;
+}
+
+void ofxOpticalFlowLK::setCvInterpolationMethod(int value) {
+    cvInterpolationMethod = value;
 }
 
 void ofxOpticalFlowLK::reset() {
@@ -155,11 +161,11 @@ void ofxOpticalFlowLK::update(const ofPixels & pixels) {
 		
 		if(pixelsType == OF_IMAGE_COLOR) {
 			colrImgLrg.setFromPixels(pixels);
-			colrImgSml.scaleIntoMe(colrImgLrg);
+			colrImgSml.scaleIntoMe(colrImgLrg, cvInterpolationMethod);
 			greyImgSml.setFromColorImage(colrImgSml);
 		} else if(pixelsType == OF_IMAGE_GRAYSCALE) {
 			greyImgLrg.setFromPixels(pixels);
-			greyImgSml.scaleIntoMe(greyImgLrg);
+			greyImgSml.scaleIntoMe(greyImgLrg, cvInterpolationMethod);
 		} else {
 			return;		// wrong image type.
 		}
